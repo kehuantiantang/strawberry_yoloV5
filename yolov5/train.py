@@ -141,7 +141,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
     loggers = {'wandb': wandb}  # loggers dict
 
     # Resume
-    start_epoch, best_fitness = 0, 0.0
+    start_epoch, best_fitness, best_05 = 0, 0.0, 0.0
     if pretrained:
         # Optimizer
         if ckpt['optimizer'] is not None:
@@ -366,6 +366,21 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
             fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
             if fi > best_fitness:
                 best_fitness = fi
+
+            ap05 = results[2]
+            if ap05 > best_05:
+                best_05 = ap05
+                with open(results_file, 'r') as f:  # create checkpoint
+                    ckpt = {'epoch': epoch,
+                            'best_fitness': best_fitness,
+                            'training_results': f.read(),
+                            'model': ema.ema,
+                            'optimizer': None if final_epoch else optimizer.state_dict(),
+                            'wandb_id': wandb_run.id if wandb else None}
+
+                    torch.save(ckpt, str(last).replace('last', 'best_ap05'))
+
+            print('Current best ap05 is %f'%best_05, '='*20)
 
             # Save model
             save = (not opt.nosave) or (final_epoch and not opt.evolve)
