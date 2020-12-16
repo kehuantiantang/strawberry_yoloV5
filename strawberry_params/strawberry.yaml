@@ -13,8 +13,8 @@
 #COCO/images/train2017/
 #COCO/images/val2017/
 #；如果使用我的方法，我们可以用上面生成labels时同时生成的train.txt和test.txt路径)
-train: /home/khtt/code/Strawberry/dataset/make/train.txt
-val: /home/khtt/code/Strawberry/dataset/make/test.txt
+train: ../dataset/make/train.txt
+val: ../dataset/make/test.txt
 
 # number of classes
 nc: 7
