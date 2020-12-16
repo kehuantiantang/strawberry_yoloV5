@@ -1,8 +1,21 @@
 import argparse
 import logging
 import os
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+import time
+
+from datetime import datetime
+
+from gpu_utils import auto_select_gpu
+
+# while True:
+#     gpu_id = auto_select_gpu(10000)
+#     if gpu_id != '':
+#         break
+#     else:
+#         print('Wait for gpu, %s'%datetime.now().strftime("%m-%d, %H:%M:%S"))
+#         time.sleep(60*20)
+# os.environ['CUDA_VISIBLE_DEVICES'] = auto_select_gpu()
+
 import random
 import time
 from pathlib import Path
