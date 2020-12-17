@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-python detect.py --source "/home/khtt/code/Strawberry/dataset/make/test" --weights "/home/khtt/code/Strawberry/yolov5/output/train/exp/weights/best.pt" --img-size 419 --augment
+python detect.py --img-size 419 --source "../dataset/make/test" --weights "./output/train/exp_913aug_885/weights/best.pt" --augment
