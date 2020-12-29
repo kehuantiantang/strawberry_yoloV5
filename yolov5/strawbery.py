@@ -26,24 +26,24 @@ class SurvedModel(object):
             'weights':["./output/train/exp_907aug_894_deeper/weights/best.pt",
                        "./output/train/exp_913aug_885/weights/best.pt",
                        "./output/train/exp_904aug_886_l/weights/best.pt"],
-                 'source':None,
-                 'img_size': 448,
-                 'conf_thres': 0.4,
-                 'iou_thres': 0.5,
-                 # TODO you can specify the gpu device here
-                 'device': '0',
-                 'view_img': False,
-                 'save_txt': False,
-                 'save_conf': False,
-                 'classes': None,
-                 'agnostic_nms': False,
-                 'augment': True,
-                 'update': False,
-                 'project': 'output/detect',
-                 'name': 'exp',
-                 'exist_ok': True,
-                 'save_dir':None
-                 }
+            'source':None,
+            'img_size': 448,
+            'conf_thres': 0.4,
+            'iou_thres': 0.5,
+            # TODO you can specify the gpu device here
+            'device': '0',
+            'view_img': False,
+            'save_txt': False,
+            'save_conf': False,
+            'classes': None,
+            'agnostic_nms': False,
+            'augment': True,
+            'update': False,
+            'project': 'output/detect',
+            'name': 'exp',
+            'exist_ok': True,
+            'save_dir':None
+        }
 
         self.opt = edict(param)
 
