@@ -280,14 +280,14 @@ def test(data,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='test.py')
-    parser.add_argument('--weights', nargs='+', type=str, default='/home/khtt/code/Strawberry/yolov5/output/train/exp_904aug/weights/best.pt', help='model.pt path(s)')
+    parser.add_argument('--weights', nargs='+', type=str, default='/Strawberry/yolov5/output/train/exp_904aug_ndata/weights/best.pt', help='model.pt path(s)')
     parser.add_argument('--data', type=str, default='../strawberry_params/strawberry.yaml', help='*.data path')
-    parser.add_argument('--batch-size', type=int, default=32, help='size of each image batch')
+    parser.add_argument('--batch-size', type=int, default=2*16, help='size of each image batch')
     parser.add_argument('--img-size', type=int, default=419, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.001, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='IOU threshold for NMS')
-    parser.add_argument('--task', default='val', help="'val', 'test', 'study'")
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    parser.add_argument('--task', default='test', help="'val', 'test', 'study'")
+    parser.add_argument('--device', default='0, 1', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--single-cls', action='store_true', help='treat as single-class dataset')
     parser.add_argument('--augment', action='store_false', help='augmented inference')
     parser.add_argument('--verbose', action='store_true', help='report mAP by class')
@@ -298,7 +298,7 @@ if __name__ == '__main__':
     parser.add_argument('--project', default='output/test', help='save to project/name')
     parser.add_argument('--name', default='exp', help='save to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
-    parser.add_argument('--workers', type=int, default=0, help='maximum number of dataloader workers')
+    parser.add_argument('--workers', type=int, default=14, help='maximum number of dataloader workers')
 
     opt = parser.parse_args()
     opt.save_json |= opt.data.endswith('coco.yaml')

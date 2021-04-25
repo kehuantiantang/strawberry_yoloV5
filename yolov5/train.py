@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import time
 
 from datetime import datetime
 
@@ -15,6 +14,8 @@ from gpu_utils import auto_select_gpu
 #         print('Wait for gpu, %s'%datetime.now().strftime("%m-%d, %H:%M:%S"))
 #         time.sleep(60*20)
 # os.environ['CUDA_VISIBLE_DEVICES'] = auto_select_gpu()
+import os
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 import random
 import time
@@ -48,6 +49,7 @@ from utils.google_utils import attempt_download
 from utils.loss import compute_loss
 from utils.plots import plot_images, plot_labels, plot_results, plot_evolution
 from utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first
+
 
 logger = logging.getLogger(__name__)
 

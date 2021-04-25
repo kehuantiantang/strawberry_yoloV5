@@ -13,8 +13,10 @@ classes = ['angular_leafspot',
 'gray_mold',
 'leaf_spot',
 'powdery_mildew_fruit',
-'powdery_mildew_leaf',]
+'powdery_mildew_leaf','anthracnose_runner']
 
+# classes = ['angular_leafspot', 'anthracnose_fruit_rot', 'blossom_blight', 'gray_mold', 'leaf_spot',
+#            'powdery_mildew_fruit', 'powdery_mildew_leaf']
 
 def convert(size, box):
     dw = 1. / size[0]
@@ -53,17 +55,16 @@ def convert_annotation(root, image_id):
         out_file.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
 
 
-root = './dataset/make'
+root = '/media/HDD3/khtt/dataset/strawberry/data_detaction'
 for image_set in sets:
-    if not os.path.exists('./dataset/make/labels/'):
-        os.makedirs('./dataset/make/labels')
-
+    if not os.path.exists(root):
+        os.makedirs(root)
 
     image_ids = [f.split('.')[0] for f in os.listdir(osp.join(root, image_set)) if f.endswith('jpg')]
 
-    list_file = open('./dataset/make/%s.txt' % (image_set), 'w')
+    list_file = open(os.path.join(root, '%s.txt'%(image_set)), 'w')
     for image_id in image_ids:
-        string = osp.join('./', image_set, '%s.jpg' % image_id) + '\n'
+        string = osp.join(root, image_set, '%s.jpg' % image_id) + '\n'
         list_file.write(string)
         convert_annotation(osp.join(root, image_set), image_id)
     list_file.close()

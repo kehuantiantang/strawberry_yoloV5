@@ -405,6 +405,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.shapes = np.array(shapes, dtype=np.float64)
         self.img_files = list(cache.keys())  # update
         self.label_files = img2label_paths(cache.keys())  # update
+
         if single_cls:
             for x in self.labels:
                 x[:, 0] = 0

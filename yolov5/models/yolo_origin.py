@@ -58,13 +58,8 @@ class Detect(nn.Module):
                 y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
                 z.append(y.view(bs, -1, self.no))
 
-        print('Operate detection', '-'*50)
-        result = x if self.training else (torch.cat(z, 1), x)
-        # print('Result Operate detection', [[x.size() for x in i] for i in result])
-        return result
+        return x if self.training else (torch.cat(z, 1), x)
 
-        # print('Result Operate detection', result[0][0].shape)
-        # return result[0][0]
 
     @staticmethod
     def _make_grid(nx=20, ny=20):
@@ -165,11 +160,10 @@ class Model(nn.Module):
 
             y.append(x if m.i in self.save else None)  # save output
 
-
         if profile:
             print('%.1fms total' % sum(dt))
 
-        return x[0]
+        return x
 
     def _initialize_biases(self, cf=None):  # initialize biases into Detect(), cf is class frequency
         # https://arxiv.org/abs/1708.02002 section 3.3

@@ -14,24 +14,27 @@ from utils.plots import plot_one_box
 from utils.torch_utils import select_device, time_synchronized, load_classifier
 import cv2.cv2
 import numpy as np
+import models
 from easydict import EasyDict as edict
 import os.path as osp
-
+import torch.nn as nn
+from utils.activations import Hardswish
 
 class SurvedModel(object):
 
     def __init__(self):
         param = {
             #TODO please specify the weight path
-            'weights':["./output/train/exp_907aug_894_deeper/weights/best.pt",
-                       "./output/train/exp_913aug_885/weights/best.pt",
-                       "./output/train/exp_904aug_886_l/weights/best.pt"],
+            # 'weights':["./output/train/exp_907aug_894_deeper/weights/best.pt",
+            #            "./output/train/exp_913aug_885/weights/best.pt",
+            #            "./output/train/exp_904aug_886_l/weights/best.pt"],
+            'weights':["./output/train/exp_893aug_887_m/weights/best_ap05.pt"],
             'source':None,
             'img_size': 448,
             'conf_thres': 0.4,
             'iou_thres': 0.5,
             # TODO you can specify the gpu device here
-            'device': '0',
+            'device': 'cpu',
             'view_img': False,
             'save_txt': False,
             'save_conf': False,
@@ -75,18 +78,19 @@ class SurvedModel(object):
         set_logging()
         device = select_device(self.opt.device)
         half = device.type != 'cpu'  # half precision only supported on CUDA
+        # print(half)
 
         # Load model
         model = attempt_load(weights, map_location=device)  # load FP32 model
         imgsz = check_img_size(imgsz, s=model.stride.max())  # check img_size
-        if half:
-            model.half()  # to FP16
+        # if half:
+        #     model.half()  # to FP16
 
         # Second-stage classifier
-        classify = False
-        if classify:
-            modelc = load_classifier(name='resnet101', n=2)  # initialize
-            modelc.load_state_dict(torch.load('weights/resnet101.pt', map_location=device)['model']).to(device).eval()
+        # classify = False
+        # if classify:
+        #     modelc = load_classifier(name='resnet101', n=2)  # initialize
+        #     modelc.load_state_dict(torch.load('weights/resnet101.pt', map_location=device)['model']).to(device).eval()
 
         # Set Dataloader
         vid_path, vid_writer = None, None
@@ -107,6 +111,14 @@ class SurvedModel(object):
         img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
         _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
 
+        for k, m in model.named_modules():
+            m._non_persistent_buffers_set = set()  # pytorch 1.6.0 compatibility
+            if isinstance(m, models.common.Conv) and isinstance(m.act, nn.Hardswish):
+                m.act = Hardswish()  # assign activation
+        #     # if isinstance(m, models.yolo.Detect):
+        #     #     m.forward = m.forward_export  # assign forward (optional)
+        # model.model[-1].export = True
+
         return_imgs = []
         for path, img, im0s, vid_cap in dataset:
             img = torch.from_numpy(img).to(device)
@@ -117,15 +129,17 @@ class SurvedModel(object):
 
             # Inference
             t1 = time_synchronized()
-            pred = model(img, augment=self.opt.augment)[0]
+
+            pred = model(img, augment=False)
+            print(type(pred), pred.size(), '======='*10)
 
             # Apply NMS
             pred = non_max_suppression(pred, self.opt.conf_thres, self.opt.iou_thres, classes=self.opt.classes, agnostic=self.opt.agnostic_nms)
             t2 = time_synchronized()
 
             # Apply Classifier
-            if classify:
-                pred = apply_classifier(pred, modelc, img, im0s)
+            # if classify:
+            #     pred = apply_classifier(pred, modelc, img, im0s)
 
             # Process detections
             for i, det in enumerate(pred):  # detections per image
@@ -184,7 +198,7 @@ class SurvedModel(object):
 
 
 if __name__ == '__main__':
-    array = '../dataset/make/test/angular_leafspot355.jpg'
+    array = '../dataset/make/test/blossom_blight199.jpg'
     model = SurvedModel()
 
     return_img = model.predict(array)
