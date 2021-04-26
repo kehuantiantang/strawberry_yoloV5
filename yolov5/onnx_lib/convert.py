@@ -27,6 +27,7 @@ def convert_params_to_int32(params_dict):
     for param in params_dict:
         data = params_dict[param]
         if data.data_type == TensorProto.INT64:
+            print(param)
             data_cvt = nph.to_array(data).astype(np.int32)
             data = nph.from_array(data_cvt, data.name)
         converted_params += [data]
@@ -48,6 +49,7 @@ def convert_constant_nodes_to_int32(nodes):
                 node.op_type == "Constant"
                 and node.attribute[0].t.data_type == TensorProto.INT64
         ):
+            print(node.name)
             data = nph.to_array(node.attribute[0].t).astype(np.int32)
             new_t = nph.from_array(data)
             new_node = h.make_node(
@@ -92,6 +94,7 @@ def convert_model_to_int32(model_path: str, out_path: str):
     graph_name = f"{graph.name}-int32"
     log.info("Creating new graph...")
     # * create a new graph with converted params and new nodes.
+    # print(graph.output)
     graph_int32 = h.make_graph(
         new_nodes,
         graph_name,
@@ -113,5 +116,6 @@ if __name__ == "__main__":
     '''
     usage
     python onnx_lib/convert.py /Strawberry/yolov5/output/train/exp_893aug_887_m/weights/best_ap05.onnx /Strawberry/yolov5/output/train/exp_893aug_887_m/weights/best_ap05_32.onnx
+    https://github.com/aadhithya/onnx-typecast
     '''
     typer.run(convert_model_to_int32)

@@ -107,7 +107,6 @@ class Processor():
     def pos_process(self, outputs):
         mydet = Detect(nc = len(self.names), anchors= [[10,13, 16,30, 33,23], [30,61, 62,45, 59,119], [116,90, 156,198, 373,326]])
         output = mydet(outputs)
-        print(output)
 
         pred = non_max_suppression(output, 0.1, 0.4, classes=None,
                                    agnostic=False)

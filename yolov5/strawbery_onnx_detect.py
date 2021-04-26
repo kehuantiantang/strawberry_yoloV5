@@ -26,7 +26,7 @@ class SurvedModel(object):
     def __init__(self):
         param = {
             #TODO please specify the weight path
-            'weights':["./output/train/exp_893aug_887_m/weights/best_ap05_sim.onnx"],
+            'weights':["./output/train/exp_893aug_887_m/weights/best_ap05.onnx"],
             'source':None,
             'img_size': 448,
             'conf_thres': 0.4,
@@ -80,6 +80,7 @@ class SurvedModel(object):
         return output
 
     def detect(self, save_img=False) -> list:
+        t_0 = time.time()
         source, weights, view_img, save_txt, imgsz = self.opt.source, self.opt.weights, self.opt.view_img, self.opt.save_txt, self.opt.img_size
         webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
             ('rtsp://', 'rtmp://', 'http://'))
@@ -110,6 +111,7 @@ class SurvedModel(object):
 
         colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.names]
 
+        print(time.time() - t_0)
         # Run inference
         t0 = time.time()
 

@@ -81,6 +81,7 @@ class SurvedModel(object):
         # print(half)
 
         # Load model
+        t0 = time.time()
         model = attempt_load(weights, map_location=device)  # load FP32 model
         imgsz = check_img_size(imgsz, s=model.stride.max())  # check img_size
         # if half:
@@ -107,17 +108,9 @@ class SurvedModel(object):
         colors = [[random.randint(0, 255) for _ in range(3)] for _ in names]
 
         # Run inference
-        t0 = time.time()
         img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
+        print(time.time() - t0)
         _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
-
-        for k, m in model.named_modules():
-            m._non_persistent_buffers_set = set()  # pytorch 1.6.0 compatibility
-            if isinstance(m, models.common.Conv) and isinstance(m.act, nn.Hardswish):
-                m.act = Hardswish()  # assign activation
-        #     # if isinstance(m, models.yolo.Detect):
-        #     #     m.forward = m.forward_export  # assign forward (optional)
-        # model.model[-1].export = True
 
         return_imgs = []
         for path, img, im0s, vid_cap in dataset:
@@ -130,9 +123,7 @@ class SurvedModel(object):
             # Inference
             t1 = time_synchronized()
 
-            pred = model(img, augment=False)
-            print(type(pred), pred.size(), '======='*10)
-
+            pred = model(img, augment=False)[0]
             # Apply NMS
             pred = non_max_suppression(pred, self.opt.conf_thres, self.opt.iou_thres, classes=self.opt.classes, agnostic=self.opt.agnostic_nms)
             t2 = time_synchronized()

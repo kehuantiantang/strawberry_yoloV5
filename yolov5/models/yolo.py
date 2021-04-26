@@ -110,26 +110,6 @@ class Model(nn.Module):
         self.info()
         logger.info('')
 
-    # def forward(self, x, augment=False, profile=False):
-    #     if augment:
-    #         img_size = x.shape[-2:]  # height, width
-    #         s = [1, 0.83, 0.67]  # scales
-    #         f = [None, 3, None]  # flips (2-ud, 3-lr)
-    #         y = []  # outputs
-    #         for si, fi in zip(s, f):
-    #             xi = scale_img(x.flip(fi) if fi else x, si)
-    #             yi = self.forward_once(xi)[0]  # forward
-    #             # cv2.imwrite('img%g.jpg' % s, 255 * xi[0].numpy().transpose((1, 2, 0))[:, :, ::-1])  # save
-    #             yi[..., :4] /= si  # de-scale
-    #             if fi == 2:
-    #                 yi[..., 1] = img_size[0] - yi[..., 1]  # de-flip ud
-    #             elif fi == 3:
-    #                 yi[..., 0] = img_size[1] - yi[..., 0]  # de-flip lr
-    #             y.append(yi)
-    #         return torch.cat(y, 1), None  # augmented inference, train
-    #     else:
-    #         return self.forward_once(x, profile)  # single-scale inference, train
-
     def forward(self, x, augment=False, profile=False):
         if augment:
             img_size = x.shape[-2:]  # height, width
@@ -172,9 +152,6 @@ class Model(nn.Module):
         if profile:
             print('%.1fms total' % sum(dt))
 
-        # directly inference caused by
-        # return x[0]
-        # print('Size', [i.size() for i in x])
         return x
 
     def _initialize_biases(self, cf=None):  # initialize biases into Detect(), cf is class frequency

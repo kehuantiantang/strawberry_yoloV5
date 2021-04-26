@@ -91,8 +91,13 @@ class Focus(nn.Module):
         self.conv = Conv(c1 * 4, c2, k, s, p, g, act)
 
     def forward(self, x):  # x(b,c,w,h) -> y(b,4c,w/2,h/2)
-        return self.conv(torch.cat([x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]], 1))
-        # return self.conv(torch.cat([x, x, x, x], 1))
+
+        a = x[..., ::int(2), ::int(2)]
+        b = x[..., int(1)::int(2), ::int(2)]
+        c = x[..., ::2, int(1)::int(2)]
+        d = x[..., int(1)::int(2),int(1)::int(2)]
+
+        return self.conv(torch.cat([a, b, c, d], 1))
 
 
 class Concat(nn.Module):

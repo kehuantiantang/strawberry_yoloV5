@@ -12,7 +12,7 @@ def cli():
     desc = 'compile Onnx model to TensorRT'
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-m', '--model', help='onnx file location inside ./lib/models', default =
-    '/Strawberry/yolov5/output/train/exp_893aug_887_m/weights/best_ap05.onnx')
+    '/Strawberry/yolov5/output/train/exp_893aug_887_m/weights/best_ap05_sim.onnx')
     parser.add_argument('-fp', '--floatingpoint', type=int, default=32, help='floating point precision. 16 or 32')
     parser.add_argument('-o', '--output', help='name of trt output file', default = 'output/detect/exp')
     args = parser.parse_args()

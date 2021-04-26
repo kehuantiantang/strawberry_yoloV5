@@ -6,14 +6,14 @@ import argparse
 import os
 
 from tensorrt_lib.Processor import Processor
-from tensorrt_lib.Visualizer import Visualizer
 
 
 def cli():
     desc = 'Run TensorRT yolov5 visualizer'
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-m', '--model',
-                        default='/Strawberry/yolov5/output/train/exp_893aug_887_m/weights/best_ap05.trt', help='trt engine file located in ./models', required=False)
+                        default='/Strawberry/yolov5/output/train/exp_893aug_887_m/weights/best_ap05_sim.trt',
+                        help='trt engine file located in ./models', required=False)
     parser.add_argument('-i', '--image', default='/Strawberry/dataset/make/test/blossom_blight199.jpg', help='image file path', required=False)
 
     parser.add_argument('--save_path', default='./output/detect/exp')
@@ -27,8 +27,10 @@ def main():
     os.makedirs(args.save_path, exist_ok=True)
     # setup processor and visualizer
 
+    t0 = time.time()
     processor = Processor(model=args.model)
     # visualizer = Visualizer(args.save_path)
+    print('Initialize', time.time() - t0)
 
     # fetch input
     print('image arg', args.image)
@@ -38,14 +40,15 @@ def main():
 
     # for i in range(1000):
     outputs = processor.detect(img)
-    print([p.shape for p in outputs])
+    # print([p.shape for p in outputs])
 
     pre_img = processor.get_preprocessing_image()
 
     pred = processor.pos_process(outputs)
-    print([p.size() for p in pred])
+    # print([p.size() for p in pred])
     processor.draw_bbox(pred, pre_img, args.save_path)
 
+    print('Done', time.time() - t0)
 
 
     # ref https://github.com/SeanAvery/yolov5-tensorrt
