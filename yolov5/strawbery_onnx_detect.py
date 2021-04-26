@@ -7,6 +7,7 @@ import random
 from torch.backends import cudnn
 import time
 from models.experimental import attempt_load
+from tensorrt_lib.post_detector import Detect
 from utils.datasets import LoadImages, LoadStreams
 from utils.general import strip_optimizer, set_logging, check_img_size, increment_path, non_max_suppression, \
     apply_classifier, scale_coords, xyxy2xywh
@@ -18,6 +19,7 @@ from easydict import EasyDict as edict
 import os.path as osp
 import onnx
 import onnxruntime
+
 
 class SurvedModel(object):
 
@@ -43,11 +45,15 @@ class SurvedModel(object):
             'exist_ok': True,
             'save_dir':None
         }
+        self.names = ['angular_leafspot',
+                      'anthracnose_fruit_rot',
+                      'blossom_blight',
+                      'gray_mold',
+                      'leaf_spot',
+                      'powdery_mildew_fruit',
+                      'powdery_mildew_leaf']
 
         self.opt = edict(param)
-
-    def to_numpy(tensor):
-        return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
     def predict (self, img:np.array) -> np.array:
 
@@ -67,6 +73,12 @@ class SurvedModel(object):
             return return_imgs[0]
 
 
+    def det_inference(self, x):
+        mydet = Detect(nc = len(self.names), anchors= [[10,13, 16,30, 33,23], [30,61, 62,45, 59,119], [116,90, 156,198, 373,326]])
+        output = mydet(x)
+        # print(output)
+        return output
+
     def detect(self, save_img=False) -> list:
         source, weights, view_img, save_txt, imgsz = self.opt.source, self.opt.weights, self.opt.view_img, self.opt.save_txt, self.opt.img_size
         webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
@@ -75,8 +87,8 @@ class SurvedModel(object):
 
         # Initialize
         set_logging()
-        device = select_device(self.opt.device)
-        #half = device.type != 'cpu'  # half precision only supported on CUDA
+        # device = select_device(self.opt.device)
+        # half = device.type != 'cpu'  # half precision only supported on CUDA
         device = 'cpu'
 
         # Load model
@@ -95,15 +107,8 @@ class SurvedModel(object):
             dataset = LoadImages(source, img_size=imgsz)
 
         # Get names and colors
-        names = [ 'angular_leafspot',
-                  'anthracnose_fruit_rot',
-                  'blossom_blight',
-                  'gray_mold',
-                  'leaf_spot',
-                  'powdery_mildew_fruit',
-                  'powdery_mildew_leaf',
-                  'anthracnose_runner']
-        colors = [[random.randint(0, 255) for _ in range(3)] for _ in names]
+
+        colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.names]
 
         # Run inference
         t0 = time.time()
@@ -124,9 +129,9 @@ class SurvedModel(object):
             outname = [output.name for output in ort_session.get_outputs()]
             inname = [input.name for input in ort_session.get_inputs()]
 
-            pred = ort_session.run(outname, {inname[0]: img})[0]
-            print(pred.shape)
-            pred = torch.from_numpy(pred)
+            pred = ort_session.run(outname, {inname[0]: img})
+            # pred = torch.cat([torch.from_numpy(i.reshape(1, -1, 12) )for i in pred], dim = 1)
+            pred = self.det_inference(pred)
 
             # Apply NMS
             pred = non_max_suppression(pred, self.opt.conf_thres, self.opt.iou_thres, classes=self.opt.classes, agnostic=self.opt.agnostic_nms)
@@ -151,7 +156,7 @@ class SurvedModel(object):
                     # Print results
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
-                        s += f'{n} {names[int(c)]}s, '  # add to string
+                        s += f'{n} {self.names[int(c)]}s, '  # add to string
 
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
@@ -162,7 +167,7 @@ class SurvedModel(object):
                                 f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
                         if save_img or view_img:  # Add bbox to image
-                            label = f'{names[int(cls)]} {conf:.2f}'
+                            label = f'{self.names[int(cls)]} {conf:.2f}'
                             plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
 
                 # Print time (inference + NMS)

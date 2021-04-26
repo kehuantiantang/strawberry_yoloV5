@@ -1,5 +1,5 @@
 # coding=utf-8
-import tensorrt_lib as trt
+import tensorrt as trt
 import sys
 import argparse
 import os
@@ -46,11 +46,14 @@ if __name__ == '__main__':
                 for error in range(parser.num_errors):
                     print("ERROR", parser.get_error(error))
         print("num layers:", network.num_layers)
+
+        # network.get_input(0).shape = [batch_size, 3, 448, 448]  # trt7
         network.get_input(0).shape = [batch_size, 3, 448, 448]  # trt7
         last_layer = network.get_layer(network.num_layers - 1)
 
+        # print('last layer', last_layer.get_output(0))
         # if not last_layer.get_output(0):
-        network.mark_output(last_layer.get_output(0))
+        # network.mark_output(last_layer.get_output(0))
 
         # reshape input from 32 to 1
         engine = builder.build_cuda_engine(network)

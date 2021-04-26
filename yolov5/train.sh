@@ -10,5 +10,5 @@
 
 
 python train.py --img-size 448 --workers 16 --batch-size 6 \
- --cfg "../strawberry_params/sb_model_x.yaml" --epochs 1000 --hyp "../strawberry_params/hyp.strawberry.yaml" \
+ --cfg "../strawberry_params/sb_model_m.yaml" --epochs 1000 --hyp "../strawberry_params/hyp.strawberry.yaml" \
  --multi-scale

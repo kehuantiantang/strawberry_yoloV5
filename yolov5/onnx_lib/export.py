@@ -7,16 +7,17 @@ Usage:
 import argparse
 import sys
 import time
+sys.path.append('.')
+sys.path.append('../models/')  # to run '$ python *.py' files in subdirectories
 
-sys.path.append('./')  # to run '$ python *.py' files in subdirectories
-
+import models
 import torch
 import torch.nn as nn
 
-import models
 from models.experimental import attempt_load
 from utils.activations import Hardswish
 from utils.general import set_logging, check_img_size
+from utils.torch_utils import select_device
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -31,7 +32,8 @@ if __name__ == '__main__':
     t = time.time()
 
     # Load PyTorch model
-    model = attempt_load(opt.weights, map_location=torch.device('cpu'))  # load FP32 model
+    # device = select_device('0')
+    model = attempt_load(opt.weights).cuda() # load FP32 model
     labels = model.names
 
     # Checks
@@ -39,7 +41,7 @@ if __name__ == '__main__':
     opt.img_size = [check_img_size(x, gs) for x in opt.img_size]  # verify img_size are gs-multiples
 
     # Input
-    img = torch.zeros(opt.batch_size, 3, *opt.img_size)  # image size(1,3,320,192) iDetection
+    img = torch.zeros(opt.batch_size, 3, *opt.img_size).cuda()  # image size(1,3,320,192) iDetection
 
     # Update model
     for k, m in model.named_modules():
@@ -49,12 +51,11 @@ if __name__ == '__main__':
         # if isinstance(m, models.yolo.Detect):
         #     m.forward = m.forward_export  # assign forward (optional)
 
-    # model.eval()
-    # model.fuse()
-    # model.model[-1].export = True
+    # ignore the nms
+    model.model[-1].export = True
     # set Detect() layer export=True # set Detect() layer export=True
+    model.cuda()
     y = model(img, augment=False, profile = False)  # dry run
-
     # print('Export', [i.size() for i in y])
     # TorchScript export
     # try:
@@ -72,8 +73,9 @@ if __name__ == '__main__':
 
         print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
         f = opt.weights.replace('.pt', '.onnx')  # filename
-        torch.onnx.export(model, img, f, verbose=False, opset_version=12, input_names=['images'],
-                          output_names=['classes', 'boxes'] if y is None else ['output'])
+
+        torch.onnx.export(model, img, f, verbose=True, opset_version=12, input_names=['images'],
+                          output_names=['classes', 'boxes'] if y is None else ['output1', 'output2', 'output3'])
 
         # Checks
         onnx_model = onnx.load(f)  # load onnx model

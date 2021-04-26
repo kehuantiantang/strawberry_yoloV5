@@ -46,10 +46,12 @@ class Detect(nn.Module):
         self.training |= self.export
         for i in range(self.nl):
             x[i] = self.m[i](x[i])  # conv
-            bs, _, ny, nx = x[i].shape  # x(bs,255,20,20) to x(bs,3,20,20,85)
+            # print('x1.shape', x[i].shape)
+            bs, _, ny, nx =  x[i].shape # x(bs,255,20,20) to x(bs,3,20,20,85)
             x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
 
             if not self.training:  # inference
+                print('Grid', '|'*10)
                 if self.grid[i].shape[2:4] != x[i].shape[2:4]:
                     self.grid[i] = self._make_grid(nx, ny).to(x[i].device)
 
@@ -59,6 +61,7 @@ class Detect(nn.Module):
                 z.append(y.view(bs, -1, self.no))
 
         print('Operate detection', '-'*50)
+        # print('Z size ', [i.size() for i in x])
         result = x if self.training else (torch.cat(z, 1), x)
         # print('Result Operate detection', [[x.size() for x in i] for i in result])
         return result
@@ -169,7 +172,10 @@ class Model(nn.Module):
         if profile:
             print('%.1fms total' % sum(dt))
 
-        return x[0]
+        # directly inference caused by
+        # return x[0]
+        # print('Size', [i.size() for i in x])
+        return x
 
     def _initialize_biases(self, cf=None):  # initialize biases into Detect(), cf is class frequency
         # https://arxiv.org/abs/1708.02002 section 3.3

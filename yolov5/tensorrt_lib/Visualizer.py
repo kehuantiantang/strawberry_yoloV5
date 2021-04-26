@@ -7,24 +7,28 @@ import time
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.image as mimg
+from PIL import Image
+import os
+
 
 class Visualizer():
-    def __init__(self):
-        names = [ 'angular_leafspot',
-                  'anthracnose_fruit_rot',
-                  'blossom_blight',
-                  'gray_mold',
-                  'leaf_spot',
-                  'powdery_mildew_fruit',
-                  'powdery_mildew_leaf',
-                  'anthracnose_runner']
+    def __init__(self, save_path):
+        self.cls_names = ['angular_leafspot',
+                'anthracnose_fruit_rot',
+                'blossom_blight',
+                'gray_mold',
+                'leaf_spot',
+                'powdery_mildew_fruit',
+                'powdery_mildew_leaf']
+        self.color_list = self.gen_colors(self.cls_names)
 
-        self.color_list = self.gen_colors(names)
-    
+        os.makedirs(save_path, exist_ok=True)
+        self.save_path = save_path
+
     def gen_colors(self, classes):
         """
             generate unique hues for each class and convert to bgr
-            classes -- list -- class names (80 for coco dataset)
+            classes -- list -- class names (80 for self.self.cls_names dataset)
             -> list
         """
         hsvs = []
@@ -43,22 +47,21 @@ class Visualizer():
             bgr = (int(rgb[2] * 255), int(rgb[1] * 255), int(rgb[0] * 255))
             bgrs.append(bgr)
         return bgrs
-    
+
     def draw_object_grid(self, img, grids, conf_thres=0.08):
         """
             visualize object probabilty grid overlayed onto image
-
             img -- ndarray -- numpy array representing input image
             grids -- ndarray -- object probablity grid of shape (1, 3, x, y, 85)
             conf_thres -- float -- minimum objectness probability score
             -> None
-            
+
         """
         for grid in grids:
             # set up image copies
             copy = img.copy()
             overlay = img.copy()
-            
+
             # convert shit
             _, _, height, width, _ = grid.shape
             px_step = 640 // height
@@ -73,15 +76,15 @@ class Visualizer():
             yv, xv = np.meshgrid(scales_x, scales_y)
             xy_grid = np.stack((yv, xv), axis=2)
             grid = grid.squeeze(axis=0)
-            
+
             # take maximum of three anchor sizes
             grid = grid.max(axis=0)
             object_grid = np.concatenate((xy_grid, grid), axis=-1)
-            
+
             # take threshold
             xc = object_grid[..., 2] > 0.1
             filtered = object_grid[xc]
-            
+
             # draw rectangles
             for obj in filtered:
                 x1y1 = (int(obj[0]), int(obj[1]))
@@ -111,11 +114,10 @@ class Visualizer():
             # cv2.imshow(window_name, copy)
             cv2.imwrite('box_grid_{}.jpg'.format(px_step), copy)
             # cv2.waitKey(10000)
-    
+
     def draw_class_grid(self, img, grids, conf_thres=0.1):
         """
-            visualize class probability grid 
-
+            visualize class probability grid
             img -- ndarray -- input image
             grids -- ndarray -- class probabilities of shape (1, 3, x, y, 80)
             conf_thres -- float -- minimum threshold for class probability
@@ -133,18 +135,18 @@ class Visualizer():
                     mc = np.amax(grid[0][0][xi][yi][:])
                     mci = np.where(grid[0][0][xi][yi][:] == mc)
                     # mc = np.amax(grid[..., 0:])
-                    
+
                     if mc > conf_thres:
                         cv2.rectangle(copy, (yi * px_step, xi * px_step), ((yi + 1) * px_step, (xi + 1) * px_step), self.color_list[int(mci[0])], -1)
-                               
+
             cv2.imshow(window_name, copy)
-            cv2.waitKey(1000) 
-                       
+            cv2.waitKey(1000)
+
         return None
 
     def draw_boxes(self, img, boxes):
         window_name = 'boxes'
-        cv2.namedWindow(window_name)
+        # cv2.namedWindow(window_name)
         copy = img.copy()
         overlay = img.copy()
         for box in boxes:
@@ -152,34 +154,36 @@ class Visualizer():
             cv2.rectangle(overlay, (x1, y1), (x2, y2), (0, 255, 0), -1)
             cv2.addWeighted(overlay, 0.05, copy, 1 - 0.5, 0, copy)
 
-        cv2.imshow(window_name, copy)
-        cv2.waitKey(10000) 
+        # cv2.imshow(window_name, copy)
+        cv2.imwrite(os.path.join(self.save_path, 'test_0001.jpg'), copy)
+        # cv2.waitKey(10000)
 
-    def draw_grid(self, img, output, i):
-        x = 0
-        while x < 640:
-            cv2.line(c2, (0, x), (640, x), color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
-            x += px_step
-        y = 0
-        while y < 640:
-            cv2.line(c2, (y, 0), (y, 650), color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
-            y += px_step
+    # def draw_grid(self, img, output, i):
+    #     x = 0
+    #     while x < 640:
+    #         cv2.line(c2, (0, x), (640, x), color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
+    #         x += px_step
+    #     y = 0
+    #     while y < 640:
+    #         cv2.line(c2, (y, 0), (y, 650), color=(0, 255, 0), thickness=1, lineType=cv2.LINE_AA)
+    #         y += px_step
 
     def draw_results(self, img, boxes, confs, classes):
         window_name = 'final results'
-        cv2.namedWindow(window_name)
+        # cv2.namedWindow(window_name)
         overlay = img.copy()
         final = img.copy()
         for box, conf, cls in zip(boxes, confs, classes):
             # draw rectangle
             x1, y1, x2, y2 = box
             conf = conf[0]
-            cls_name = coco[cls]
+            cls_name = self.cls_names[cls]
             color = self.color_list[cls]
             cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
             # draw text
             cv2.putText(final, '%s %f' % (cls_name, conf), org=(x1, int(y1+10)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255))
         cv2.addWeighted(overlay, 0.5, final, 1 - 0.5, 0, final)
-        cv2.imshow(window_name, final)
-        cv2.waitKey(20)
+        # cv2.imshow(window_name, final)
+        # cv2.waitKey(20)
+        cv2.imwrite(os.path.join('test_0002.jpg'), final)
         return final

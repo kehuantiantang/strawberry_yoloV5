@@ -13,17 +13,31 @@
 #COCO/images/train2017/
 #COCO/images/val2017/
 #；如果使用我的方法，我们可以用上面生成labels时同时生成的train.txt和test.txt路径)
-train: /Strawberry/dataset/make/train.txt
-val: /Strawberry/dataset/make/test.txt
+# pascal voc xml 文件转换成 yolo的在voc2yolo.py 里面
 
+#train.txt just the path of image, which like
+#'''
+#./test/gray_mold403.jpg
+#./test/powdery_mildew_fruit127.jpg
+#./test/powdery_mildew_fruit128.jpg
+#'''
+#test directory must include the jpg & xml file
+#
+#
+#txt put in the same directory as image root directory put
+
+train: /home/ailab/dataset/yolo/data_detaction/train.txt
+val:  /home/ailab/dataset/yolo/data_detaction/test.txt
+test:  /home/ailab/dataset/yolo/data_detaction/test.txt
 # number of classes
-nc: 7
+nc: 8
 
 # class names
-names: ['angular_leafspot',
-        'anthracnose_fruit_rot',
-        'blossom_blight',
-        'gray_mold',
-        'leaf_spot',
-        'powdery_mildew_fruit',
-        'powdery_mildew_leaf',]
+names: [ 'angular_leafspot',
+         'anthracnose_fruit_rot',
+         'blossom_blight',
+         'gray_mold',
+         'leaf_spot',
+         'powdery_mildew_fruit',
+         'powdery_mildew_leaf',
+         'anthracnose_runner']
